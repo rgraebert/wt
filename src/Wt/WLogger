@@ -8,6 +8,9 @@
 #define WLOGGER_H_
 
 #include <Wt/WStringStream>
+//#include <Wt/Json/Value>
+//#include <Wt/Json/Serializer>
+//#include <Wt/Json/Object>
 #include <boost/lexical_cast.hpp>
 #include <iostream>
 #include <string>
@@ -390,6 +393,63 @@ WT_API extern WLogEntry log(const std::string& type);
     if (Wt::logInstance().logging("error", Wt::logger)) \
       Wt::log("error") << Wt::logger << ": " << m; \
     } while(0)
+
+// FELIX_CHANGE_BEGIN
+//#   define LOG_OBJECT_MESSAGE(TYPE, CONTEXT, MESSAGE) \
+//        Wt::Json::Value objItem(Wt::Json::ObjectType); \
+//        Wt::Json::Object &obj = objItem; \
+//        obj["log"] =  Wt::WString(TYPE); \
+//        obj["context"] =  Wt::WString(CONTEXT); \
+//        std::stringstream str; \
+//        str << MESSAGE; \
+//        obj["message"] = Wt::WString(str.str()); \
+//        std::string jsonstring = Wt::Json::serialize(obj); \
+//        std::replace( jsonstring.begin(), jsonstring.end(), '\n', ' ' ); \
+//        jsonstring.erase( std::remove( jsonstring.begin(), jsonstring.end(), '\t'), jsonstring.end() );
+//
+//#   define LOG_OBJECT_DURATION(TYPE, CONTEXT, DURATION) \
+//        Wt::Json::Value objItem(Wt::Json::ObjectType); \
+//        Wt::Json::Object &obj = objItem; \
+//        obj["log"] = Wt::WString(TYPE); \
+//        obj["context"] =  Wt::WString(CONTEXT); \
+//        obj["duration"] = DURATION; \
+//        std::string jsonstring = Wt::Json::serialize(obj); \
+//        std::replace( jsonstring.begin(), jsonstring.end(), '\n', ' ' ); \
+//        jsonstring.erase( std::remove( jsonstring.begin(), jsonstring.end(), '\t'), jsonstring.end() );
+
+//#   define LOG_INFO_S(s,m)  do{\
+//      LOG_OBJECT_MESSAGE("info",Wt::logger,m)\
+//      (s)->log("info") << "json" << Wt::WLogger::sep << jsonstring;	\
+//  } while(0)
+//#   define LOG_INFO(m) do { \
+//       LOG_OBJECT_MESSAGE("info",Wt::logger,m)\
+//    if (Wt::logInstance().logging("info", Wt::logger))	\
+//          Wt::log("info") << "json" << Wt::WLogger::sep << jsonstring;	\
+//    }  while(0)
+//#   define LOG_INFO_DURATION(m) do { \
+//        LOG_OBJECT_DURATION("info",Wt::logger,m)\
+//        if (Wt::logInstance().logging("info", Wt::logger))	\
+//            Wt::log("info") << "json" << Wt::WLogger::sep << jsonstring;	\
+//    }  while(0)
+//#   define LOG_WARN_S(s,m)  do{\
+//        LOG_OBJECT_MESSAGE("warn",Wt::logger,m)\
+//        (s)->log("warn") << "json" << Wt::WLogger::sep << jsonstring;	\
+//    } while(0)
+//#   define LOG_WARN(m) do { \
+//        LOG_OBJECT_MESSAGE("warn",Wt::logger,m)\
+//        if (Wt::logInstance().logging("warn", Wt::logger))	\
+//            Wt::log("warn") << "json" << Wt::WLogger::sep << jsonstring;	\
+//    }  while(0)
+//#   define LOG_ERROR_S(s,m)  do{\
+//        LOG_OBJECT_MESSAGE("error",Wt::logger,m)\
+//        (s)->log("error") << "json" << Wt::WLogger::sep << jsonstring;	\
+//    } while(0)
+//#   define LOG_ERROR(m) do { \
+//        LOG_OBJECT_MESSAGE("error",Wt::logger,m)\
+//    if (Wt::logInstance().logging("error", Wt::logger)) \
+//            Wt::log("error") << "json" << Wt::WLogger::sep << jsonstring;	\
+//    }  while(0)
+// FELIX_CHANGE_END
 
 #  else // !LOG4CPLUS
 

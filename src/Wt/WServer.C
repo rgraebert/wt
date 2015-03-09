@@ -54,7 +54,9 @@ void WServer::init(const std::string& wtApplicationPath,
   logger_.addField("session", false);
   logger_.addField("type", false);
   logger_.addField("message", true);
-
+//// FELIX_CHANGE_BEGIN
+//  logger_.addField("json", false);
+//// FELIX_CHANGE_END
   instance_ = this;
 }
 

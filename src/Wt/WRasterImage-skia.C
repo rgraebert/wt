@@ -13,6 +13,7 @@
 #include "Wt/WRasterImage"
 #include "Wt/WTransform"
 #include "Wt/Http/Response"
+#include "Wt/WApplication"
 
 #include "Wt/FontSupport.h"
 #include "WebUtils.h"
@@ -23,6 +24,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string.hpp>
 
+#define SK_SUPPORT_LEGACY_PUBLICEFFECTCONSTRUCTORS
 #include <SkBitmap.h>
 #include <SkBitmapDevice.h>
 #include <SkDashPathEffect.h>
@@ -31,8 +33,16 @@
 #include <SkStream.h>
 #include <SkTypeface.h>
 
-//#include <SkForceLinking.h>
+#if !defined( _MSC_VER )
+  #include <SkForceLinking.h>
+  __SK_FORCE_IMAGE_DECODER_LINKING;
+#endif
 
+#ifdef WIN32
+namespace {
+  extern "C" unsigned int __stdcall GetTickCount();
+}
+#endif
 
 namespace {
   inline SkColor fromWColor(const Wt::WColor &color)
@@ -196,17 +206,23 @@ void WRasterImage::setChanged(WFlags<ChangeFlag> flags)
     flags = Pen | Brush | Font | Hints;
   }
 
-  if (flags & Hints) {
-    if (!(painter()->renderHints() & WPainter::Antialiasing)) {
-      impl_->strokePaint_.setAntiAlias(false);
-      impl_->fillPaint_.setAntiAlias(false);
-      impl_->textPaint_.setAntiAlias(false);
-    } else {
+  //FELIX_CHANGE_BEGIN
+  // always high precision
+  //if (flags & Hints) {
+  //  if (!(painter()->renderHints() & WPainter::Antialiasing)) {
+  //    impl_->strokePaint_.setAntiAlias(false);
+  //    impl_->fillPaint_.setAntiAlias(false);
+  //    impl_->textPaint_.setAntiAlias(false);
+  //  } else {
+  //    impl_->strokePaint_.setAntiAlias(true);
+  //    impl_->fillPaint_.setAntiAlias(true);
+  //    impl_->textPaint_.setAntiAlias(true);
+  //  }
+  //}
       impl_->strokePaint_.setAntiAlias(true);
       impl_->fillPaint_.setAntiAlias(true);
       impl_->textPaint_.setAntiAlias(true);
-    }
-  }
+  //FELIX_CHANGE_END
 
   if (flags & Pen) {
     const WPen& pen = painter()->pen();
@@ -310,7 +326,12 @@ void WRasterImage::setChanged(WFlags<ChangeFlag> flags)
       base = "Times";
       break;
     case WFont::SansSerif:
+       // FELIX_CHANGE_BEGIN
+#ifndef WIN32
+        base = "Nimbus Sans L";
+#else
       base = "Helvetica";
+#endif
       break;
     case WFont::Monospace:
       base = "Courier";
@@ -329,8 +350,18 @@ void WRasterImage::setChanged(WFlags<ChangeFlag> flags)
 	font.weight() == WFont::Bolder)
       style |= SkTypeface::kBold;
 
-    impl_->textPaint_.setTypeface(SkTypeface::CreateFromName(base,
-				    (SkTypeface::Style)style))->unref();
+    //FELIX_CHANGE_BEGIN
+    SkTypeface* pTypeface = SkTypeface::CreateFromName(base,(SkTypeface::Style)style);
+    if ( 0 != pTypeface )
+    {
+	    impl_->textPaint_.setTypeface(pTypeface);
+	    pTypeface->unref();
+	}
+	else
+	{
+		Wt::log("error") << "Typeface \'" << (base ? base : "") << "\' can not be created";
+	}
+    //FELIX_CHANGE_END
     impl_->textPaint_.setTextSize(SkIntToScalar(font.sizeLength(12).toPixels()));
   }
 }
@@ -626,6 +657,10 @@ public:
     os_.write((const char *)buffer, size);
     return os_.good();
   }
+  virtual size_t bytesWritten() const
+  {
+	  return os_.tellp();
+  }
 
 private:
   std::ostream &os_;
@@ -636,12 +671,26 @@ void WRasterImage::handleRequest(const Http::Request& request,
 {
   response.setMimeType("image/" + impl_->type_);
 
+  boost::posix_time::ptime start = boost::posix_time::microsec_clock::local_time();
   RasterStream s(response.out());
 
   if (impl_->type_ == "png")
     SkImageEncoder::EncodeStream(&s, *impl_->bitmap_, SkImageEncoder::kPNG_Type, 100);
   else if (impl_->type_ == "jpg")
     SkImageEncoder::EncodeStream(&s, *impl_->bitmap_, SkImageEncoder::kJPEG_Type, 100);
+
+  boost::posix_time::ptime
+	  end = boost::posix_time::microsec_clock::local_time();
+
+  boost::posix_time::time_duration d = end - start;
+
+// FELIX_CHANGE_BEGIN
+  //LOG_INFO_DURATION((double)d.total_microseconds() / 1000);
+  if ( d.total_microseconds() / 1000 > 20 )
+  {
+    LOG_INFO("WRasterImage: handleRequest EncodeStream duration " << (double)d.total_microseconds() / 1000 << " ms");
+  }
+// FELIX_CHANGE_END
 
 }
 

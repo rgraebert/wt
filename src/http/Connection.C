@@ -402,8 +402,22 @@ void Connection::handleWriteResponse(ReplyPtr reply,
 				     const asio_error_code& e,
 				     std::size_t bytes_transferred)
 {
-  LOG_DEBUG(socket().native() << ": handleWriteResponse(): "
+
+//FELIX_CHANGE_BEGIN
+  //LOG_DEBUG(socket().native() << ": handleWriteResponse(): "
+	 //   << bytes_transferred << " ; " << e.message());
+	if (e.value() != 0)
+	{
+		LOG_INFO(socket().native() << ": handleWriteResponse(): "
 	    << bytes_transferred << " ; " << e.message());
+
+#ifdef _WINDOWS
+		std::ostringstream os;
+		os << "\nhandleWriteResponse transferred = " << bytes_transferred;
+		OutputDebugString( os.str().c_str() );
+#endif
+	}
+//FELIX_CHANGE_END
 
   cancelWriteTimer();
 

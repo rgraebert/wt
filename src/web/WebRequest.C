@@ -66,7 +66,9 @@ void WebRequest::log()
 
     boost::posix_time::time_duration d = end - start_;
 
-    LOG_INFO("took " << (double)d.total_microseconds() / 1000  << "ms");
+    // FELIX_CHANGE_BEGIN
+    //LOG_INFO("took " << (double)d.total_microseconds() / 1000  << "ms");
+    // FELIX_CHANGE_END
 
     start_ = boost::posix_time::ptime();
   }

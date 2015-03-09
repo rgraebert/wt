@@ -77,6 +77,14 @@ void WIOService::start()
     // Block all signals for background threads.
     sigset_t new_mask;
     sigfillset(&new_mask);
+//FELIX_CHANGE_BEGIN
+    // Unblock specific signals for the crash handler
+    sigdelset(&new_mask, SIGILL);
+    sigdelset(&new_mask, SIGABRT);
+    sigdelset(&new_mask, SIGFPE);
+    sigdelset(&new_mask, SIGSEGV);
+    sigdelset(&new_mask, SIGBUS);
+//FELIX_CHANGE_END
     sigset_t old_mask;
     pthread_sigmask(SIG_BLOCK, &new_mask, &old_mask);
 #endif // _WIN32

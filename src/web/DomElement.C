@@ -1237,7 +1237,10 @@ std::string DomElement::asJavaScript(EscapeOStream& out,
       if (removeAllChildren_ >= 0) {
 	declare(out);
 	if (removeAllChildren_ == 0)
+// DISABLED: FELIX_CHANGE_BEGIN
+      //out <<"if (" << var_ << ") "  WT_CLASS ".setHtml(" << var_ << ", ''); \n";
 	  out << WT_CLASS << ".setHtml(" << var_ << ", '');\n";
+// FELIX_CHANGE_END
 	else {
 	  out << "$(" << var_ << ").children(':gt(" << (removeAllChildren_ - 1)
 	      << ")').remove();";
@@ -1305,12 +1308,20 @@ std::string DomElement::asJavaScript(EscapeOStream& out,
 
       std::string varr = replaced_->createVar();
       WStringStream insertJs;
+      // DISABLED: FELIX_CHANGE_BEGIN
+      //insertJs << "if(" << var_ << ") " << var_  << ".parentNode.replaceChild("
+	  //     << varr << ',' << var_ << ");\n";
       insertJs << var_ << ".parentNode.replaceChild("
 	       << varr << ',' << var_ << ");\n";
+      //FELIX_CHANGE_END
       replaced_->createElement(out, app, insertJs.str());
       if (unstubbed_)
+      // DISABLED: FELIX_CHANGE_BEGIN
+          //out << "if(" << var_ << ") " << WT_CLASS ".unstub(" << var_ << ',' << varr << ','
+          //<< (hideWithDisplay_ ? 1 : 0) << ");\n";
 	out << WT_CLASS ".unstub(" << var_ << ',' << varr << ','
 	    << (hideWithDisplay_ ? 1 : 0) << ");\n";
+      //FELIX_CHANGE_END
 
       return var_;
     } else if (insertBefore_) {
@@ -1397,7 +1408,10 @@ void DomElement::renderInnerHtmlJS(EscapeOStream& out, WApplication *app) const
 	|| !innerHTML.empty()) {
       declare(out);
 
+// DISABLED:FELIX_CHANGE_BEGIN
+      //out <<"if (" << var_ << ") " WT_CLASS ".setHtml(" << var_ << ", '";
       out << WT_CLASS ".setHtml(" << var_ << ",'";
+// FELIX_CHANGE_END
 
       out.pushEscape(EscapeOStream::JsStringLiteralSQuote);
       TimeoutList timeouts;
@@ -1478,7 +1492,10 @@ void DomElement::setJavaScriptProperties(EscapeOStream& out,
 	  || !childrenToAdd_.empty() || !childrenHtml_.empty()))
 	break;
 
+// DISABLED: FELIX_CHANGE_BEGIN
+      //out <<"if (" << var_ << ") " WT_CLASS ".setHtml(" << var_ << ',';
       out << WT_CLASS ".setHtml(" << var_ << ',';
+// FELIX_CHANGE_END
       if (!pushed) {
 	escaped.pushEscape(EscapeOStream::JsStringLiteralSQuote);
 	pushed = true;
@@ -1492,7 +1509,10 @@ void DomElement::setJavaScriptProperties(EscapeOStream& out,
       out << ");";
       break;
     case PropertyValue:
+// DISABLED:FELIX_CHANGE_BEGIN
+      //out <<"if (" << var_ << ") " << var_ << ".value=";
       out << var_ << ".value=";
+// FELIX_CHANGE_END
       if (!pushed) {
 	escaped.pushEscape(EscapeOStream::JsStringLiteralSQuote);
 	pushed = true;

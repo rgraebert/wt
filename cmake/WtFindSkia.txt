@@ -5,6 +5,7 @@
 # - SKIA_FOUND
 # Taking into account:
 # - SKIA_PREFIX
+# FELIX_CHANGE_BEGIN — please port when upgrading
 
 SET(SKIA_FOUND FALSE)
 
@@ -24,8 +25,12 @@ IF(SKIA_BASE_INCLUDE_DIR)
   )
 ENDIF(SKIA_BASE_INCLUDE_DIR)
 
-SET(SKIA_DEBUG ${SKIA_PREFIX}/out/gyp/Debug)
-SET(SKIA_RELEASE ${SKIA_PREFIX}/out/gyp/Release)
+SET(SKIA_DEBUG ${SKIA_PREFIX}/out/Debug)
+SET(SKIA_RELEASE ${SKIA_PREFIX}/out/Release)
+IF(WIN32)
+SET(SKIA_RELEASE ${SKIA_PREFIX}/out/Release_Developer)
+ENDIF(WIN32)
+
 FIND_LIBRARY(SKIA_CORE_LIB_D NAMES skia_core PATHS ${SKIA_DEBUG})
 FIND_LIBRARY(SKIA_PORTS_LIB_D NAMES skia_ports PATHS ${SKIA_DEBUG})
 FIND_LIBRARY(SKIA_OPTS_LIB_D NAMES skia_opts PATHS ${SKIA_DEBUG})
@@ -75,6 +80,36 @@ IF(WIN32)
     )
   ENDIF(SKIA_BASE_INCLUDE_DIR AND SKIA_CORE_LIB_R AND SKIA_CORE_LIB_D)
 ELSEIF(APPLE)
+  IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+    IF(SKIA_BASE_INCLUDE_DIR AND SKIA_CORE_LIB_D)
+      SET(SKIA_FOUND TRUE)
+      # lines below don't work
+      #FIND_LIBRARY(COREFOUNDATION_LIBRARY CoreFoundatation)
+      #FIND_LIBRARY(MOBILECORESERVICES_LIBRARY ApplicationServices)
+      SET(SKIA_LIBRARIES
+        ${SKIA_CORE_LIB_D}
+        ${SKIA_PORTS_LIB_D}
+        ${SKIA_OPTS_LIB_D}
+        ${SKIA_IMAGES_LIB_D}
+        ${SKIA_UTILS_LIB_D}
+        ${SKIA_OPTS_SSSE3_LIB_D}
+        ${SKIA_EFFECTS_LIB_D}
+        ${SKIA_SFNT_LIB_D}
+        ${SKIA_SKGPU_LIB_D}
+        "${SKIA_DEBUG}/libjpeg.a"
+        "${SKIA_DEBUG}/libwebp_dec.a"
+        "${SKIA_DEBUG}/libwebp_demux.a"
+        "${SKIA_DEBUG}/libwebp_dsp.a"
+        "${SKIA_DEBUG}/libwebp_enc.a"
+        "${SKIA_DEBUG}/libwebp_utils.a"
+        "-framework CoreFoundation"
+        "-framework ApplicationServices"
+      )
+      # avoid undefined SkTOU8 etc (skia checks NDEBUG if SK_RELEASE and
+      # SK_DEBUG are undefined)
+      SET(SKIA_DEFINES "-DSK_DEBUG")
+    ENDIF(SKIA_BASE_INCLUDE_DIR AND SKIA_CORE_LIB_D)
+  ELSE(CMAKE_BUILD_TYPE MATCHES DEBUG)
   IF(SKIA_BASE_INCLUDE_DIR AND SKIA_CORE_LIB_R)
     SET(SKIA_FOUND TRUE)
     # lines below don't work
@@ -92,11 +127,80 @@ ELSEIF(APPLE)
       ${SKIA_SKGPU_LIB_R}
       "-framework CoreFoundation"
       "-framework ApplicationServices"
+        "${SKIA_RELEASE}/libjpeg.a"
+        "${SKIA_RELEASE}/libwebp_dec.a"
+        "${SKIA_RELEASE}/libwebp_demux.a"
+        "${SKIA_RELEASE}/libwebp_dsp.a"
+        "${SKIA_RELEASE}/libwebp_enc.a"
+        "${SKIA_RELEASE}/libwebp_utils.a"
     )
     # avoid undefined SkTOU8 etc (skia checks NDEBUG if SK_RELEASE and
     # SK_DEBUG are undefined)
     SET(SKIA_DEFINES "-DSK_RELEASE")
   ENDIF(SKIA_BASE_INCLUDE_DIR AND SKIA_CORE_LIB_R)
+  ENDIF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+ELSEIF(UNIX)
+  IF(CMAKE_BUILD_TYPE MATCHES DEBUG)
+    IF(SKIA_BASE_INCLUDE_DIR AND SKIA_CORE_LIB_D)
+      SET(SKIA_FOUND TRUE)
+      # lines below don't work
+      #FIND_LIBRARY(COREFOUNDATION_LIBRARY CoreFoundatation)
+      #FIND_LIBRARY(MOBILECORESERVICES_LIBRARY ApplicationServices)
+      SET(SKIA_LIBRARIES
+        ${SKIA_CORE_LIB_D}
+        ${SKIA_PORTS_LIB_D}
+        ${SKIA_OPTS_LIB_D}
+        ${SKIA_IMAGES_LIB_D}
+        ${SKIA_UTILS_LIB_D}
+        ${SKIA_OPTS_SSSE3_LIB_D}
+        ${SKIA_EFFECTS_LIB_D}
+        ${SKIA_SFNT_LIB_D}
+        ${SKIA_SKGPU_LIB_D}
+        "-lfreetype"
+        "-lfontconfig"
+        "-lpng"
+        "-lgif"
+        "${SKIA_DEBUG}/obj/gyp/libjpeg.a"
+        "${SKIA_DEBUG}/obj/gyp/libwebp_dec.a"
+        "${SKIA_DEBUG}/obj/gyp/libwebp_demux.a"
+        "${SKIA_DEBUG}/obj/gyp/libwebp_dsp.a"
+        "${SKIA_DEBUG}/obj/gyp/libwebp_enc.a"
+        "${SKIA_DEBUG}/obj/gyp/libwebp_utils.a"
+      )
+      SET(SKIA_DEFINES "-DSK_DEBUG")
+    ENDIF(SKIA_BASE_INCLUDE_DIR AND SKIA_CORE_LIB_D)  
+  ELSE(CMAKE_BUILD_TYPE MATCHES DEBUG)
+    IF(SKIA_BASE_INCLUDE_DIR AND SKIA_CORE_LIB_R)
+      SET(SKIA_FOUND TRUE)
+      # lines below don't work
+      #FIND_LIBRARY(COREFOUNDATION_LIBRARY CoreFoundatation)
+      #FIND_LIBRARY(MOBILECORESERVICES_LIBRARY ApplicationServices)
+      SET(SKIA_LIBRARIES
+        ${SKIA_CORE_LIB_R}
+        ${SKIA_PORTS_LIB_R}
+        ${SKIA_OPTS_LIB_R}
+        ${SKIA_IMAGES_LIB_R}
+        ${SKIA_UTILS_LIB_R}
+        ${SKIA_OPTS_SSSE3_LIB_R}
+        ${SKIA_EFFECTS_LIB_R}
+        ${SKIA_SFNT_LIB_R}
+        ${SKIA_SKGPU_LIB_R}
+        "-lfreetype"
+        "-lfontconfig"
+        "-lpng"
+        "-lgif"
+        "${SKIA_RELEASE}/obj/gyp/libjpeg.a"
+        "${SKIA_RELEASE}/obj/gyp/libwebp_dec.a"
+        "${SKIA_RELEASE}/obj/gyp/libwebp_demux.a"
+        "${SKIA_RELEASE}/obj/gyp/libwebp_dsp.a"
+        "${SKIA_RELEASE}/obj/gyp/libwebp_enc.a"
+        "${SKIA_RELEASE}/obj/gyp/libwebp_utils.a"
+      )
+      # avoid undefined SkTOU8 etc (skia checks NDEBUG if SK_RELEASE and
+      # SK_DEBUG are undefined)
+      SET(SKIA_DEFINES "-DSK_RELEASE")
+    ENDIF(SKIA_BASE_INCLUDE_DIR AND SKIA_CORE_LIB_R)
+  ENDIF(CMAKE_BUILD_TYPE MATCHES DEBUG)
 ENDIF(WIN32)
 
 

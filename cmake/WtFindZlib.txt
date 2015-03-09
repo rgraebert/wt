@@ -20,9 +20,10 @@ IF(WIN32)
       ${ZLIB_PREFIX}/lib
   )
 
+# VM: added release zlib here.
   FIND_LIBRARY(ZLIB_LIB_DEBUG
     NAMES
-      zlibstatd zlibstaticd zlibd
+      zlibstatd zlibstaticd zlibd zlib
     PATHS
       ${ZLIB_PREFIX}/lib
   )

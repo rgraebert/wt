@@ -108,12 +108,12 @@ bool ProxyReply::consumeData(Buffer::const_iterator begin,
     sessionProcess_ = sessionManager_.sessionProcess(sessionId);
 
     if (sessionId.empty() || !sessionProcess_) {
-      if (sessionManager_.tryToIncrementSessionCount()) {
-	// Launch new child process
-	sessionProcess_.reset(
-	    new SessionProcess(connection()->server()->service()));
+        if (sessionManager_.tryToIncrementSessionCount()) {
+            // Launch new child process
+            sessionProcess_.reset(
+                new SessionProcess(connection()->server()->service()));
 
-	sessionProcess_->asyncExec(
+            sessionProcess_->asyncExec(
 	    configuration(),
 	    boost::bind(&ProxyReply::connectToChild,
 	      boost::dynamic_pointer_cast<ProxyReply>(shared_from_this()), _1));
@@ -121,9 +121,9 @@ bool ProxyReply::consumeData(Buffer::const_iterator begin,
       } else {
 	LOG_ERROR("maximum amount of sessions reached!");
 	error(service_unavailable);
-      }
+        }
     } else {
-      connectToChild(true);
+        connectToChild(true);
     }
   }
 
@@ -140,6 +140,9 @@ void ProxyReply::connectToChild(bool success)
 	boost::bind(&ProxyReply::handleChildConnected,
 	    boost::dynamic_pointer_cast<ProxyReply>(shared_from_this()),
 	    asio::placeholders::error));
+    // FELIX_CHANGE_BEGIN
+    // LOG_INFO("connecting to child: " << sessionProcess_->endpoint().port() << " socket id:" << socket_->native());
+    // FELIX_CHANGE_END
   } else {
     error(service_unavailable);
   }

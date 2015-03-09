@@ -25,7 +25,11 @@
 #include <boost/asio/ssl.hpp>
 
 #if BOOST_VERSION >= 104700
+//FELIX_CHANGE_BEGIN
+#if !defined WIN32
 #define VERIFY_CERTIFICATE
+#endif
+//FELIX_CHANGE_END
 #endif
 
 #endif // WT_WITH_SSL
@@ -103,8 +107,8 @@ public:
 
     startTimer();
     resolver_.async_resolve(query,
-			    boost::bind(&Impl::handleResolve,
-					shared_from_this(),
+			    boost::bind(&Impl::handleResolve, 
+                    shared_from_this(),
 					boost::asio::placeholders::error,
 					boost::asio::placeholders::iterator));
   }

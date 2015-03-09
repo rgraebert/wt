@@ -2698,6 +2698,9 @@ _$_$if_CATCH_ERROR_$_();
 		  "exception_description": description,
 		  "exception_js": msg };
       err.stack = stack;
+        // FELIX_CHANGE_BEGIN
+      console.error("Wt JS Error:" + JSON.stringify(err));
+        // FELIX_CHANGE_END
       sendError(err,
 		"Wt internal error; code: " +  e.code
 		+ ", description: " + description);

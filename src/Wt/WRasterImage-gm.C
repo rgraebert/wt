@@ -48,6 +48,9 @@ namespace {
 }
 #endif
 
+#ifdef WIN32
+  extern "C" unsigned int __stdcall GetTickCount();
+#endif
 namespace {
   static const double EPSILON = 1E-5;
 
@@ -369,12 +372,16 @@ void WRasterImage::setChanged(WFlags<ChangeFlag> flags)
     flags = Pen | Brush | Font | Hints;
   }
 
-  if (flags & Hints) {
-    if (!(painter()->renderHints() & WPainter::Antialiasing))
-      DrawSetStrokeAntialias(impl_->context_, 0);
-    else
+  //FELIX_CHANGE_BEGIN
+  // always high precision
+  //if (flags & Hints) {
+  //  if (!(painter()->renderHints() & WPainter::Antialiasing))
+  //    DrawSetStrokeAntialias(impl_->context_, 0);
+  //  else
+  //    DrawSetStrokeAntialias(impl_->context_, 1);
+  //}
       DrawSetStrokeAntialias(impl_->context_, 1);
-  }
+  //FELIX_CHANGE_END
 
   if (flags & Pen) {
     const WPen& pen = painter()->pen();
@@ -998,6 +1005,7 @@ void WRasterImage::handleRequest(const Http::Request& request,
   response.setMimeType("image/" + impl_->type_);
 
   if (impl_->image_) {
+	  boost::posix_time::ptime start = boost::posix_time::microsec_clock::local_time();
     ImageInfo info;
     GetImageInfo(&info);
 
@@ -1008,14 +1016,27 @@ void WRasterImage::handleRequest(const Http::Request& request,
     void *data = ImageToBlob(&info, impl_->image_, &size, &exception);
 
     if(!data)
-      throw WException("WRasterImage::handleRequest() image could not be "
+    {
+      //throw WException("WRasterImage::handleRequest() image could not be "
+        char buff[1000];
+        sprintf(buff, "WRasterImage::handleRequest() image could not be "
                        "converted to blob - is your image type supported "
-		       "by graphicsmagick?");
+                "by graphicsmagick?"
+                "Exception Info: %s, %d, %s",exception.description, exception.error_number, exception.reason);
+      throw WException(buff);
+    }
 
     response.out().write((const char *)data, size);
  
     free(data);
-  }
+// FELIX_CHANGE_BEGIN
+	boost::posix_time::ptime
+		end = boost::posix_time::microsec_clock::local_time();
+
+	boost::posix_time::time_duration d = end - start;
+
+	LOG_INFO_DURATION((double)d.total_microseconds() / 1000);  }
+//FELIX_CHANGE_END
 }
 
 }

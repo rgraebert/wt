@@ -79,6 +79,7 @@ bool SessionProcessManager::tryToIncrementSessionCount()
     return false;
   }
   ++ numSessions_;
+  LOG_INFO("tryToIncrementSessionCount: Incremented Session Count numSessions_: "  << numSessions_);
   return true;
 }
 
@@ -102,8 +103,10 @@ void SessionProcessManager::addPendingSessionProcess(const boost::shared_ptr<Ses
   pendingProcesses_.push_back(process);
 }
 
-void SessionProcessManager::addSessionProcess(std::string sessionId, const boost::shared_ptr<SessionProcess>& process)
+    
+    void SessionProcessManager::addSessionProcess(std::string sessionId, const boost::shared_ptr<SessionProcess>& process)
 {
+  LOG_INFO("tryToIncrementSessionCount: Adding Session Process("<< sessionId << "): "  << (sessions_.size()) << "/ numSessions_ " << numSessions_ << ")");
 #ifdef WT_THREADED
   boost::mutex::scoped_lock lock(sessionsMutex_);
 #endif // WT_THREADED
@@ -119,6 +122,7 @@ void SessionProcessManager::addSessionProcess(std::string sessionId, const boost
   }
   process->setSessionId(sessionId);
   sessions_[sessionId] = process;
+  LOG_INFO("tryToIncrementSessionCount: Added Session Process: "  << (sessions_.size()) << "/ numSessions_ " << numSessions_ << ")");
 }
 
 std::vector<Wt::WServer::SessionInfo> SessionProcessManager::sessions() const
@@ -140,6 +144,7 @@ std::vector<Wt::WServer::SessionInfo> SessionProcessManager::sessions() const
 
 void SessionProcessManager::processDeadChildren(boost::system::error_code ec)
 {
+  //LOG_INFO("processDeadChildren: started");
   if (ec) {
     if (ec != boost::system::errc::operation_canceled)
       LOG_ERROR("Error processing dead children: " << ec.message());
@@ -169,12 +174,13 @@ void SessionProcessManager::processDeadChildren(boost::system::error_code ec)
 
   for (std::vector<std::string>::iterator it = toErase.begin();
        it != toErase.end(); ++it) {
-    LOG_INFO("Child process " << sessions_[*it]->processInfo().dwProcessId << " died, removing session " << *it
-	<< " (#sessions: " << (sessions_.size() - 1) << ")");
+    LOG_INFO("processDeadChildren: Child process " << sessions_[*it]->processInfo().dwProcessId << " died, removing session " << *it
+    << " (#sessions: " << (sessions_.size() - 1) << "/ numSessions_ " << numSessions_-1 << ")");
     sessions_[*it]->stop();
     sessions_.erase(*it);
     -- numSessions_;
   }
+
 
   SessionProcessList processesToErase;
 
@@ -188,12 +194,13 @@ void SessionProcessManager::processDeadChildren(boost::system::error_code ec)
 
   for (SessionProcessList::iterator it = processesToErase.begin();
 	   it != processesToErase.end(); ++it) {
-    LOG_INFO("Child process " << (*it)->processInfo().dwProcessId << " died before a session could be assigned");
+    LOG_INFO("processDeadChildren: Child process " << (*it)->processInfo().dwProcessId << " died before a session could be assigned");
     (*it)->stop();
 	SessionProcessList::iterator it2 = std::find(pendingProcesses_.begin(), pendingProcesses_.end(), *it);
 	pendingProcesses_.erase(it2);
     -- numSessions_;
   }
+
 #endif // WT_WIN32
 #ifdef SIGNAL_SET
   signals_.async_wait(boost::bind(&SessionProcessManager::processDeadChildren, this,
@@ -214,8 +221,8 @@ void SessionProcessManager::removeSessionForPid(pid_t cpid)
   for (SessionMap::iterator it = sessions_.begin();
        it != sessions_.end(); ++it) {
     if(it->second->pid() == cpid) {
-      LOG_INFO("Child process " << cpid << " died, removing session " << it->first
-	  << " (#sessions: " << (sessions_.size() - 1) << ")");
+      LOG_INFO("removeSessionForPid: Child process " << cpid << " died, removing session " << it->first
+      << " (#sessions: " << (sessions_.size() - 1) << "/ numSessions_ " << numSessions_-1 << ")");
       it->second->stop();
       sessions_.erase(it);
       -- numSessions_;
@@ -225,7 +232,7 @@ void SessionProcessManager::removeSessionForPid(pid_t cpid)
   for (SessionProcessList::iterator it = pendingProcesses_.begin();
        it != pendingProcesses_.end(); ++it) {
     if ((*it)->pid() == cpid) {
-      LOG_INFO("Child process " << cpid << " died before a session could be assigned");
+      LOG_INFO("removeSessionForPid: Child process " << cpid << " died before a session could be assigned");
       (*it)->stop();
       pendingProcesses_.erase(it);
       -- numSessions_;

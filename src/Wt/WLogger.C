@@ -231,11 +231,16 @@ void WLogger::setFile(const std::string& path)
   if (file) {
     ofs = new std::ofstream(file);
   } else {
-    ofs = new std::ofstream(path.c_str(), std::ios_base::out | std::ios_base::ate);
+// FELIX_CHANGE_BEGIN
+    //ofs = new std::ofstream(path.c_str(), std::ios_base::out | std::ios_base::ate);
+    ofs = new std::ofstream(path.c_str(), std::ios_base::out | std::ios_base::ate | std::ios_base::app);
+// FELIX_CHANGE_END
   }
 #else
-  ofs = new std::ofstream(path.c_str(), 
-			  std::ios_base::out | std::ios_base::ate);
+// FELIX_CHANGE_BEGIN
+    //ofs = new std::ofstream(path.c_str(), std::ios_base::out | std::ios_base::ate);
+    ofs = new std::ofstream(path.c_str(), std::ios_base::out | std::ios_base::ate | std::ios_base::app);
+// FELIX_CHANGE_END
   if (!ofs->is_open()) {
     // maybe a special file (pipe, /dev/null) that does not support ate?
     delete ofs;

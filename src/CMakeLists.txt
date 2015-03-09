@@ -26,11 +26,15 @@ FILE_TO_STRING(web/skeleton/Plain.html    Plain_html.C      Plain_html)
 FILE_TO_STRING(web/skeleton/Hybrid.html   Hybrid_html.C     Hybrid_html)
 FILE_TO_STRING(web/skeleton/Boot.html     Boot_html.C       Boot_html)
 
-IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  FILE_TO_STRING(web/skeleton/Wt.js     Wt_js.C Wt_js)
-ELSE(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  FILE_TO_STRING(web/skeleton/Wt.min.js Wt_js.C Wt_js)
-ENDIF(CMAKE_BUILD_TYPE STREQUAL "Debug")
+# FELIX_CHANGE_BEGIN use debug for now
+#
+#IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  #FILE_TO_STRING(web/skeleton/Wt.js     Wt_js.C Wt_js)
+#ELSE(CMAKE_BUILD_TYPE STREQUAL "Debug")
+  #FILE_TO_STRING(web/skeleton/Wt.min.js Wt_js.C Wt_js)
+#ENDIF(CMAKE_BUILD_TYPE STREQUAL "Debug")
+FILE_TO_STRING(web/skeleton/Wt.js     Wt_js.C Wt_js)
+# FELIX_CHANGE_END
 
 IF(CMAKE_BUILD_TYPE STREQUAL "Debug")
   FILE_TO_STRING(web/skeleton/Boot.js     Boot_js.C Boot_js)
